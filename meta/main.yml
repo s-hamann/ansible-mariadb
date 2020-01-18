@@ -1,0 +1,28 @@
+galaxy_info:
+  author: Sebastian Hamann
+  description: Install and configure a MariaDB database server
+  license: MIT
+
+  min_ansible_version: 2.10
+
+  platforms:
+  - name: Gentoo
+    versions:
+      - any
+  - name: Debian
+    versions:
+      - buster
+  - name: Alpine
+    versions:
+      - any
+  - name: GenericLinux
+    versions:
+      - any
+
+  galaxy_tags:
+    - database
+    - mariadb
+    - mysql
+    - sql
+
+  dependencies: []

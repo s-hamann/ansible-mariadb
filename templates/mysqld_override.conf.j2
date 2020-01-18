@@ -1,0 +1,31 @@
+{# vim: filetype=systemd.jinja2 #}
+[Service]
+User={{ mariadb_user }}
+Group={{ mariadb_group }}
+PIDFile={{ mariadb_pid_file | quote }}
+RuntimeDirectory={{ mariadb_pid_file | dirname | relpath('/run') | quote }}
+# Apply principle of least privilege
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths={{ ([mariadb_data_path] + _log_paths) | unique | map('quote') | join(' ') }}
+{% if mariadb_inaccessible_paths | count %}
+InaccessiblePaths={{ mariadb_inaccessible_paths | unique | map('quote') | join(' ') }}
+{% endif %}
+PrivateTmp=true
+PrivateDevices=true
+{% if not mariadb_port | bool %}
+PrivateNetwork=true
+{% endif %}
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies={% if mariadb_port | bool %}AF_INET AF_INET6 {% endif %}AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+SystemCallFilter=@system-service @basic-io @io-event @network-io madvise
+SystemCallFilter=~@chown @keyring @memlock @privileged @setuid
+SystemCallArchitectures=native
+RemoveIPC=true

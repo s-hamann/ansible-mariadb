@@ -1,0 +1,8 @@
+---
+mariadb_packages:
+  # Note: The name of the actual database package must be the first in this list
+  - 'dev-db/mariadb'
+  - 'dev-python/pymysql'
+mariadb_service_name: "{{ (ansible_facts['service_mgr'] == 'systemd') | ternary('mariadb', 'mysql') }}"
+mariadb_config_path: '/etc/mysql/my.cnf'
+mariadb_setup_cmd: "/usr/share/mariadb/scripts/mysql_install_db --user={{ mariadb_user | quote }} --datadir={{ mariadb_data_path | quote }} --auth-root-authentication-method=socket --skip-auth-anonymous-user"

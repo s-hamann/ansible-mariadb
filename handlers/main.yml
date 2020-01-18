@@ -1,0 +1,11 @@
+---
+- name: 'reload service files'
+  systemd:
+    daemon_reload: true
+  listen: mariadb_reload_service_files
+  when: "ansible_facts['service_mgr'] == 'systemd'"
+
+- name: 'restart mysqld'
+  service:
+    name: "{{ mariadb_service_name }}"
+    state: "{{ ansible_facts['is_chroot'] | ternary(omit, 'restarted') }}"

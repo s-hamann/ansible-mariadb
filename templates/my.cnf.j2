@@ -1,0 +1,72 @@
+{# vim: filetype=dosini.jinja2 #}
+{{ ansible_managed | comment }}
+
+[mysqld]
+# mariadb server options
+{% if ansible_facts['service_mgr'] != 'systemd' %}
+user = {{ mariadb_user }}
+{% endif %}
+
+# Networking
+{% if mariadb_port | bool %}
+port = {{ mariadb_port }}
+bind-address = {{ mariadb_bind_address }}
+{% else %}
+skip-networking = 1
+skip-name-resolve = 1
+{% endif %}
+{% if mariadb_tls_cert is defined %}
+ssl_cert = {{ mariadb_tls_cert }}
+ssl_key = {{ mariadb_tls_cert_key }}
+{% if mariadb_tls_client_ca is defined %}
+ssl_ca = {{ mariadb_tls_client_ca }}
+{% endif %}
+{% if mariadb_tls_13_only | bool %}
+loose-tls-version = TLSv1.3
+{% else %}
+loose-tls-version = TLSv1.2,TLSv1.3
+{% endif %}
+{% endif %}
+
+# Local paths
+socket = {{ mariadb_socket_path }}
+pid-file = {{ mariadb_pid_file }}
+datadir = {{ mariadb_data_path }}
+{% if ansible_facts['os_family'] == 'Gentoo' %}
+{# Gentoo breaks if basedir is not here, Alpine breaks if it is... #}
+basedir = {{ mariadb_base_dir }}
+{% endif %}
+
+# Logging
+log-error = {{ mariadb_error_log }}
+{% if mariadb_slow_query_log %}
+slow-query-log = 1
+slow-query-log-file = {{ mariadb_slow_query_log }}
+long-query-time = {{ mariadb_slow_query_time }}
+{% endif %}
+
+# Don't allow new user creation by the user who has no write privileges to the mysql.user table.
+safe-user-create = 1
+# Block connections using the legacy (<MySQL-4.1) mysql_old_password authentication plugin.
+old_passwords = 0
+secure-auth = 1
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links = 0
+# Block LOAD DATA LOCAL statements (but not LOAD DATA).
+local-infile = 0
+# Make LOAD DATA, SELECT ... INTO and LOAD FILE() only work with files in the specified path.
+secure-file-priv = '/tmp'
+# Prevent modification of session timestamps except during replication.
+loose-secure-timestamp = REPLICATION
+
+{% for k, v in mariadb_extra_options.items() %}
+{{ k }} = {{ v }}
+{% endfor %}
+
+[client]
+# mariadb client options
+
+{% if mariadb_port | bool %}
+port = {{ mariadb_port }}
+{% endif %}
+socket = {{ mariadb_socket_path }}
