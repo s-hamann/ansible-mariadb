@@ -10,7 +10,7 @@ ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths={{ ([mariadb_data_path] + _log_paths) | unique | map('quote') | join(' ') }}
 {% if mariadb_inaccessible_paths | count %}
-InaccessiblePaths={{ mariadb_inaccessible_paths | unique | map('quote') | join(' ') }}
+InaccessiblePaths={{ [mariadb_inaccessible_paths] | flatten | unique | map('quote') | join(' ') }}
 {% endif %}
 PrivateTmp=true
 PrivateDevices=true
@@ -19,6 +19,7 @@ PrivateNetwork=true
 {% endif %}
 ProtectKernelTunables=true
 ProtectKernelModules=true
+ProtectKernelLogs=true
 ProtectControlGroups=true
 LockPersonality=true
 MemoryDenyWriteExecute=true
