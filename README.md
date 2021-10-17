@@ -104,7 +104,7 @@ This role does not set up TLS certificates and therefore depends on a role that 
 Example Configuration
 ---------------------
 
-The following is short example for some of the configuration options this role provides:
+The following is a short example for some of the configuration options this role provides:
 
 ```yaml
 mariadb_port: false
