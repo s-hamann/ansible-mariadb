@@ -3,3 +3,4 @@ mariadb_packages:
   - 'mariadb'
   - 'mariadb-openrc'
   - 'py3-mysqlclient'
+mariadb_error_log: false

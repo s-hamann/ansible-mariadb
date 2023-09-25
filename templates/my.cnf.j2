@@ -38,7 +38,9 @@ basedir = {{ mariadb_base_dir }}
 {% endif %}
 
 # Logging
+{% if mariadb_error_log is ansible.builtin.truthy %}
 log-error = {{ mariadb_error_log }}
+{% endif %}
 {% if mariadb_slow_query_log %}
 slow-query-log = 1
 slow-query-log-file = {{ mariadb_slow_query_log }}

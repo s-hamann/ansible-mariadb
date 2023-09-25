@@ -55,7 +55,9 @@ Role Variables
     Optional.
 * `mariadb_error_log`  
   Path to a file where errors, warning and other important status information is logged.
+  Set to `false` to disable logging errors to a file.
   Defaults to `/var/log/mysql/error.log`.
+  On [Alpine Linux](https://alpinelinux.org/), this setting is ignored and error logs go to the syslog.
 * `mariadb_slow_query_log`  
   Path to a file where slow queries are logged.
   Defaults to `false`, which disables this feature.
