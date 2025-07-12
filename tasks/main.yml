@@ -135,7 +135,7 @@
     host: "{{ user.host | default(omit) }}"
     priv: "{{ user.grants | default(false) | ansible.builtin.ternary([user.grants] | ansible.builtin.flatten | join('/'), omit) }}"
     password: "{{ user.password | default(omit) }}"
-    plugin: "{{ user.plugin | default(mariadb_port | ansible.builtin.bool | ansible.builtin.ternary('mysql_native_password', 'unix_socket')) }}"
+    plugin: "{{ user.plugin | default(mariadb_port is ansible.builtin.truthy | ansible.builtin.ternary('mysql_native_password', 'unix_socket')) }}"
     state: present
     login_unix_socket: "{{ mariadb_socket_path }}"
   loop: "{{ mariadb_users }}"

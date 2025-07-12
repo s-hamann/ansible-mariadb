@@ -68,7 +68,7 @@ loose-secure-timestamp = REPLICATION
 [client]
 # mariadb client options
 
-{% if mariadb_port | ansible.builtin.bool %}
+{% if mariadb_port is ansible.builtin.truthy %}
 port = {{ mariadb_port }}
 {% endif %}
 socket = {{ mariadb_socket_path }}

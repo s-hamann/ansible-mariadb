@@ -7,7 +7,7 @@ RuntimeDirectory={{ mariadb_pid_file | ansible.builtin.dirname | ansible.builtin
 # Apply principle of least privilege
 NoNewPrivileges=true
 CapabilityBoundingSet=
-{% if mariadb_port != false and mariadb_port | int < 1024 %}
+{% if mariadb_port is ansible.builtin.truthy and mariadb_port | int < 1024 %}
 # Allow binding to low ports
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_BIND_SERVICE
@@ -24,7 +24,7 @@ InaccessiblePaths=-{{ path | ansible.builtin.quote }}
 {% endif %}
 PrivateTmp=true
 PrivateDevices=true
-{% if not mariadb_port | ansible.builtin.bool %}
+{% if not mariadb_port is ansible.builtin.truthy %}
 PrivateNetwork=true
 {% endif %}
 {% if [mariadb_extra_groups | default([])] | ansible.builtin.flatten | count == 0 %}
@@ -39,7 +39,7 @@ ProtectClock=true
 ProtectHostname=true
 LockPersonality=true
 MemoryDenyWriteExecute=true
-RestrictAddressFamilies={% if mariadb_port | ansible.builtin.bool %}AF_INET AF_INET6 {% endif %}AF_UNIX
+RestrictAddressFamilies={% if mariadb_port is ansible.builtin.truthy %}AF_INET AF_INET6 {% endif %}AF_UNIX
 RestrictNamespaces=true
 RestrictRealtime=true
 RestrictSUIDSGID=true
