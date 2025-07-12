@@ -2,7 +2,7 @@
 mariadb_use: []
 mariadb_inaccessible_paths: []
 mariadb_port: 3306
-mariadb_bind_address: '127.0.0.1'
+mariadb_bind_address: 127.0.0.1
 mariadb_tls_13_only: false
 mariadb_databases: []
 mariadb_users: []

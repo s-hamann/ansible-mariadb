@@ -1,6 +1,6 @@
 ---
 mariadb_packages:
-  - 'default-mysql-server'
-  - "{{ (ansible_facts['python']['version']['major'] == 2) | ternary('python-pymysql', 'python3-pymysql') }}"
+  - default-mysql-server
+  - "{{ (ansible_facts['python']['version']['major'] == 2) | ansible.builtin.ternary('python-pymysql', 'python3-pymysql') }}"
 mariadb_config_path: '/etc/mysql/mariadb.cnf'
 mariadb_pid_file: '/run/mysqld/mysqld.pid'

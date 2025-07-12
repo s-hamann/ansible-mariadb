@@ -1,5 +1,5 @@
 {# vim: filetype=dosini.jinja2 #}
-{{ ansible_managed | comment }}
+{{ ansible_managed | ansible.builtin.comment }}
 
 [mysqld]
 # mariadb server options
@@ -8,7 +8,7 @@ user = {{ mariadb_user }}
 {% endif %}
 
 # Networking
-{% if mariadb_port | bool %}
+{% if mariadb_port | ansible.builtin.bool %}
 port = {{ mariadb_port }}
 bind-address = {{ mariadb_bind_address }}
 {% else %}
@@ -21,7 +21,7 @@ ssl_key = {{ mariadb_tls_cert_key }}
 {% if mariadb_tls_client_ca is defined %}
 ssl_ca = {{ mariadb_tls_client_ca }}
 {% endif %}
-{% if mariadb_tls_13_only | bool %}
+{% if mariadb_tls_13_only | ansible.builtin.bool %}
 loose-tls-version = TLSv1.3
 {% else %}
 loose-tls-version = TLSv1.2,TLSv1.3
@@ -68,7 +68,7 @@ loose-secure-timestamp = REPLICATION
 [client]
 # mariadb client options
 
-{% if mariadb_port | bool %}
+{% if mariadb_port | ansible.builtin.bool %}
 port = {{ mariadb_port }}
 {% endif %}
 socket = {{ mariadb_socket_path }}

@@ -1,121 +1,123 @@
 ---
-- name: 'gather os specific variables'
-  include_vars: "{{ vars_file }}"
+- name: 'Gather OS specific variables'
+  ansible.builtin.include_vars: "{{ vars_file }}"
   loop:
-    - 'default.yml'
+    - default.yml
     - "{{ ansible_facts['os_family'] | lower }}.yml"
     - "{{ ansible_facts['distribution'] | lower }}.yml"
     - "{{ ansible_facts['distribution'] | lower }}-{{ ansible_facts['distribution_major_version'] }}.yml"
+    - "{{ ansible_facts['distribution'] | lower }}-{{ ansible_facts['distribution_version'] | ansible.builtin.regex_search('[0-9]+\\.[0-9]+') }}.yml"
     - "{{ ansible_facts['distribution'] | lower }}-{{ ansible_facts['distribution_version'] }}.yml"
   loop_control:
     loop_var: vars_file
-  when: "(vars_file is abs and vars_file is file) or (vars_file is not abs and (role_path ~ '/vars/' ~ vars_file) is file)"
+  when: "(vars_file is ansible.builtin.abs and vars_file is ansible.builtin.file) or (vars_file is not ansible.builtin.abs and (role_path ~ '/vars/' ~ vars_file) is ansible.builtin.file)"
+  tags:
+    - always
 
-- name: 'set USE flags for mariadb'
-  lineinfile:
+- name: 'Set USE flags for mariadb'
+  ansible.builtin.lineinfile:
     path: '/etc/portage/package.use/dev'
-    line: "{{ mariadb_packages | first }} {{ ['server'] | union(mariadb_use | default([])) | sort | join(' ') }}"
+    line: "{{ mariadb_packages | first }} {{ ['server'] | ansible.builtin.union(mariadb_use | default([])) | sort | join(' ') }}"
     regexp: "^{{ mariadb_packages | first }}\\s"
     create: true
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
     state: present
   when: "ansible_facts['pkg_mgr'] == 'portage'"
 
-- name: 'install required software'
-  package:
+- name: 'Install required software'
+  ansible.builtin.package:
     name: "{{ mariadb_packages }}"
     state: present
     install_recommends: "{{ false if ansible_facts['pkg_mgr'] == 'apt' else omit }}"
 
-- name: "add {{ mariadb_user }} to extra groups"
-  user:
+- name: "Add {{ mariadb_user }} to extra groups"
+  ansible.builtin.user:
     name: "{{ mariadb_user }}"
     groups: "{{ mariadb_extra_groups }}"
     append: true
   notify: 'restart mysqld'
-  when: "[mariadb_extra_groups | default([])] | flatten | count"
+  when: "[mariadb_extra_groups | default([])] | ansible.builtin.flatten | count"
 
-- name: 'determine log directories'
-  set_fact:
-    _log_paths: "{{ [mariadb_error_log, mariadb_slow_query_log] | select | map('dirname') | unique | list }}"
+- name: 'Determine log directories'
+  ansible.builtin.set_fact:
+    _log_paths: "{{ [mariadb_error_log, mariadb_slow_query_log] | select | map('ansible.builtin.dirname') | ansible.builtin.unique | list }}"
 
-- name: "harden {{ mariadb_service_name }}.service"
+- name: "Harden {{ mariadb_service_name }}.service"
+  when: "ansible_facts['service_mgr'] == 'systemd'"
   block:
-    - name: "create override directory for {{ mariadb_service_name }}.service"
-      file:
+    - name: "Create override directory for {{ mariadb_service_name }}.service"
+      ansible.builtin.file:
         path: "/etc/systemd/system/{{ mariadb_service_name }}.service.d/"
         state: directory
         owner: root
         group: root
-        mode: 0755
+        mode: '0755'
 
-    - name: "install override file for {{ mariadb_service_name }}.service"
-      template:
+    - name: "Install override file for {{ mariadb_service_name }}.service"
+      ansible.builtin.template:
         dest: "/etc/systemd/system/{{ mariadb_service_name }}.service.d/override.conf"
-        src: 'mysqld_override.conf.j2'
+        src: mysqld_override.conf.j2
         owner: root
         group: root
-        mode: 0644
+        mode: '0644'
       notify:
-        - 'mariadb_reload_service_files'
+        - mariadb_reload_service_files
         - 'restart mysqld'
 
-  when: "ansible_facts['service_mgr'] == 'systemd'"
-
-- name: 'create log directories'
-  file:
+- name: 'Create log directories'
+  ansible.builtin.file:
     path: "{{ directory }}"
     state: directory
     owner: "{{ mariadb_user }}"
     group: "{{ mariadb_group }}"
-    mode: 0750
+    mode: '0750'
   loop: "{{ _log_paths }}"
   loop_control:
     loop_var: directory
 
-- name: 'configure mariadb'
-  template:
+- name: 'Configure mariadb'
+  ansible.builtin.template:
     dest: "{{ mariadb_config_path }}"
-    src: 'my.cnf.j2'
+    src: my.cnf.j2
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   notify: 'restart mysqld'
 
 # This is skipped for distributions that already initialized the database.
-- name: 'initialize mariadb'
-  command: "{{ mariadb_setup_cmd }}"
+- name: 'Initialize mariadb'
+  ansible.builtin.command: "{{ mariadb_setup_cmd }}"
   args:
     creates: "{{ mariadb_data_path }}/mysql"
     chdir: "{{ mariadb_base_dir }}"
 
 # If the unit file changed, reload it now.
-- meta: flush_handlers
+- ansible.builtin.meta: flush_handlers
 
-- name: 'enable and start MariaDB'
-  service:
+- name: 'Enable and start MariaDB'
+  ansible.builtin.service:
     name: "{{ mariadb_service_name }}"
     enabled: true
-    state: "{{ ansible_facts['is_chroot'] | ternary(omit, 'started') }}"
+    state: "{{ ansible_facts['is_chroot'] | ansible.builtin.ternary(omit, 'started') }}"
 
-- name: 'disable anonymous access'
-  mysql_user:
+- name: 'Disable anonymous access'
+  community.mysql.mysql_user:
     name: ''
     host_all: true
     state: absent
     login_unix_socket: "{{ mariadb_socket_path }}"
 
-- name: 'remove test database'
-  mysql_db:
-    name: 'test'
+- name: 'Remove test database'
+  community.mysql.mysql_db:
+    name: test
     state: absent
     login_unix_socket: "{{ mariadb_socket_path }}"
   when: "'test' not in mariadb_databases | map(attribute='name') | list"
 
-- name: 'create databases'
-  mysql_db:
+- name: 'Create databases'
+  community.mysql.mysql_db:
     name: "{{ db.name }}"
     encoding: "{{ db.encoding | default('utf8mb4') }}"
     collation: "{{ db.collation | default('utf8mb4_unicode_520_ci') }}"
@@ -127,13 +129,13 @@
     label: "{{ db.name }}"
 
 # TODO: REQUIRE {SSL,X509,SUBJECT,...}
-- name: 'create database users'
-  mysql_user:
+- name: 'Create database users'
+  community.mysql.mysql_user:
     name: "{{ user.name }}"
     host: "{{ user.host | default(omit) }}"
-    priv: "{{ user.grants | default(false) | ternary([user.grants] | flatten | join('/'), omit) }}"
+    priv: "{{ user.grants | default(false) | ansible.builtin.ternary([user.grants] | ansible.builtin.flatten | join('/'), omit) }}"
     password: "{{ user.password | default(omit) }}"
-    plugin: "{{ user.plugin | default(mariadb_port | bool | ternary('mysql_native_password', 'unix_socket')) }}"
+    plugin: "{{ user.plugin | default(mariadb_port | ansible.builtin.bool | ansible.builtin.ternary('mysql_native_password', 'unix_socket')) }}"
     state: present
     login_unix_socket: "{{ mariadb_socket_path }}"
   loop: "{{ mariadb_users }}"

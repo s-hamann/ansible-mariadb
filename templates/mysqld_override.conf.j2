@@ -2,8 +2,8 @@
 [Service]
 User={{ mariadb_user }}
 Group={{ mariadb_group }}
-PIDFile={{ mariadb_pid_file | quote }}
-RuntimeDirectory={{ mariadb_pid_file | dirname | relpath('/run') | quote }}
+PIDFile={{ mariadb_pid_file | ansible.builtin.quote }}
+RuntimeDirectory={{ mariadb_pid_file | ansible.builtin.dirname | ansible.builtin.relpath('/run') | ansible.builtin.quote }}
 # Apply principle of least privilege
 NoNewPrivileges=true
 CapabilityBoundingSet=
@@ -14,20 +14,20 @@ AmbientCapabilities=CAP_NET_BIND_SERVICE
 {% endif %}
 ProtectSystem=strict
 ProtectHome=true
-{% for path in ([mariadb_data_path] + _log_paths) | unique %}
-ReadWritePaths=-{{ path | quote }}
+{% for path in ([mariadb_data_path] + _log_paths) | ansible.builtin.unique %}
+ReadWritePaths=-{{ path | ansible.builtin.quote }}
 {% endfor %}
 {% if mariadb_inaccessible_paths | count %}
-{% for path in [mariadb_inaccessible_paths] | flatten | unique %}
-InaccessiblePaths=-{{ path | quote }}
+{% for path in [mariadb_inaccessible_paths] | ansible.builtin.flatten | ansible.builtin.unique %}
+InaccessiblePaths=-{{ path | ansible.builtin.quote }}
 {% endfor %}
 {% endif %}
 PrivateTmp=true
 PrivateDevices=true
-{% if not mariadb_port | bool %}
+{% if not mariadb_port | ansible.builtin.bool %}
 PrivateNetwork=true
 {% endif %}
-{% if [mariadb_extra_groups | default([])] | flatten | count == 0 %}
+{% if [mariadb_extra_groups | default([])] | ansible.builtin.flatten | count == 0 %}
 PrivateUsers=true
 {% endif %}
 ProtectKernelTunables=true
@@ -39,7 +39,7 @@ ProtectClock=true
 ProtectHostname=true
 LockPersonality=true
 MemoryDenyWriteExecute=true
-RestrictAddressFamilies={% if mariadb_port | bool %}AF_INET AF_INET6 {% endif %}AF_UNIX
+RestrictAddressFamilies={% if mariadb_port | ansible.builtin.bool %}AF_INET AF_INET6 {% endif %}AF_UNIX
 RestrictNamespaces=true
 RestrictRealtime=true
 RestrictSUIDSGID=true
